@@ -1,106 +1,101 @@
-const express = require('express');
-
+const express = require("express");
 const app = express();
 
-//app.use() method takes 2 parameters one is route("/sfa") and the other 
-//parameter is known as the request handlers
-// (req,res)=>{ }
-//this is known as request handlers 
+const { AdminAuth, UserAuth } = require("./middleware/auth");
 
-//in the routes are checked from top to bottom and if the route is like this 
-// /test/fafafa(anything) then the server will select this route(/test) 
-// but /test2/(anything) server will not (/test) because /test and /test2 
-//both are two different types of strings 
+// if we do app.get("/user",(req,res)=>{}) and we send no response from the get
+//then what will happen is that the express will continuously ask/wait for the
+//response to come and it will not come then it will stop looking for the response
+//after sometimess
 
-//and if "/" is there in the route is then anything after this will be selected
-//server checks from top to bottom and match each route with the requested route
-//which ever matches the criteria will be selected 
+//we can send multiple request handlers at once ,next() tells us that there is also a
+//another request handler which you should check
+//now we can play with next and res.send() but changing there position here and there
+//instead of request handlers we can use a array of request handler's also it
+//will also do the same thing no change
 
+// app.get("/user",(req,res,next)=>{
+//   console.log("request handler 1");
+//   res.send("Handler 1");
+//   next();
+// },
+// [(req,res,next)=>{
+//   console.log("request handler 2");
+//   res.send("Handler 2");
+//   next();
+// },
+// (req,res,next)=>{
+//   console.log("request handler 3");
+//   res.send("Handler 3");
+//   next();
+// }],
+// (req,res,next)=>{
+//   console.log("request handler 4");
+//   res.send("Handler 4");
+//   // next();
+// }
+// );
 
-//app.use() matches all the http methods it does not matter whether get,post,put,or delete 
-//is used it all gives the same answer in return to test api's we use the postman not the browser 
-//because it is hard to test through the browser 
+//and instead of mutliple request handler in one route we can create multiple routes
+//we can also write it like this no change in output
 
-
-
-// app.use("/test", (req, res) => {
-//   res.send("hi test!");
+// app.get("/user", (req, res, next) => {
+//   console.log("request handler 1");
+//   res.send("Handler 1");
+//   next();
+// });
+// app.get("/user", (req, res) => {
+//   console.log("request handler 2");
+//   res.send("Handler 2");
 // });
 
-// app.use("/", (req, res) => {
-//   res.send("Hello hi bye!");
-// });
+//what are middlewares : these are terms used for the route handler in which
+//these are those route handlers in which which donot send any response back
+//and are used as the bridge to go to that route handlers which actually sent
+//the response
 
-// app.use("/hello2", (req, res) => {
-//   res.send("Hello");
-// });
+//like this in this example
+//here this is acting as a middleware for the route handlers and it is handling the
+//and the logic to the route handlers has to pass through this middleware
+//is the AdminAuthentication logic written here
+app.use("/admin", AdminAuth);
 
-// app.use("/hello", (req, res) => {
-//   res.send("Hello");
-// });
+app.get("/user/login", (req, res) => {
+  res.send("the user has been logged in");
+});
 
+app.get("/user", UserAuth, (req, res) => {
+  res.send("user data sent");
+});
 
-//now when we will run this for every http request at /user response will be the same
-//that is HAHAH because the .use is before every other http request 
-//hence to avoid these we use specific http methods before the generic one's
+app.get("/admin/getAllData", (req, res) => {
+  //logic for checking if the request is authorized
 
-// app.use("/user",(res,req)=>{
-//   res.send("HAHAHA");
-// })
+  res.send("All Data Sent");
 
-// //this will only handle the get requests to the /user
-// app.get("/user",(req,res)=>{
-//   res.send({firstName:"Amrit Raj",lastName:"Singh"});
-// });
+  // const token = "xyzafala";
+  // const isAuthorized = token === "xyz";
+  // if (isAuthorized) {
+  //   res.send("All Data Sent");
+  // } else {
+  //   res.status(401).send("Unauthorized Request");
+  // }
+});
 
-// //this will handle all post request to the /user
-// app.post("/user",(req,res)=>{
-//   res.send("This response has been saved in the databases");
-// });
+app.get("/admin/DeleteUser", (req, res) => {
+  //logic for checking if the request is authorized
 
+  res.send("Deleted a User");
 
-//in the routes if routes are like this means /ab?c means here b can be ignored as well
-//in the routes if the routess are like this /a(bc)+d means that /a(anynumberoftimesbc)d is accepted
-
-
-//suppose we have a url like this /localhost:7777/user?userId:101 how can we 
-//get the userId from the route handler 
-//use res.query to get all the query parameters
-app.get("/user",(req,res)=>{
-  console.log(req.query);
-  res.send("another get http request to the /user");
-})
-
-
-//if we have a url like this /user/708 we can handle it using the route parameters
-app.get("/user/:userId",(req,res)=>{
-  console.log(req.params);
-  res.send("another one");
-})
-
-//complex routes using multiple parameters 
-app.get("/user/:userId/:name/:password",(req,res)=>{
-  console.log(req.params);
-  res.send("complex params");
-})
-
-
-//some more regex here are 
-//   /.*fly$/ This is a valid regex. It means:
-// ➝ Match ANY URL ending with "fly".
-// Breakdown:
-// . → any character
-// * → zero or more times
-// .* → any number of any characters
-// fly → literal text "fly"
-// $ → end of string
-
-// path:/a/
-// meaning: literal path /a/
-// matches exactly with this : /a/
-
+  // const token = "xyzafala";
+  // const isAuthorized = token === "xyz";
+  // if (isAuthorized) {
+  //   res.send("Deleted a User");
+  // } else {
+  //   res.status(401).send("Unauthorized Request");
+  // }
+});
 
 app.listen(7777, () => {
   console.log("The server is listening on the port 7777...");
 });
-
