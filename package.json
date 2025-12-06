@@ -4,14 +4,15 @@
   "description": "tinder like application",
   "main": "index.js",
   "scripts": {
-    "start":"node src/app.js",
-    "dev":"nodemon src/app.js",
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Amrit Raj",
   "license": "ISC",
   "dependencies": {
     "express": "^5.1.0",
+    "mongoose": "^9.0.1",
     "nodemon": "^3.1.10"
   }
 }
