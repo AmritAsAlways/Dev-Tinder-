@@ -150,7 +150,7 @@ app.patch("/userupdatebyid",async (req,res)=>{
 
   try{
     // const person=await User.findByIdAndUpdate(user_id,user)
-    const person=await User.findByIdAndUpdate(user_id,user,{returnDocument:'before'})//here the third parameter is options
+    const person=await User.findByIdAndUpdate(user_id,user,{returnDocument:'before',runValidators: true})//here the third parameter is options
     //there are various types of options choosing different options will result in different person
     //output we can read about different options from the documenation 
     console.log(person)
@@ -168,7 +168,7 @@ app.patch("/userupdate",async (req,res)=>{
 
   try{
     // const person=await User.findByIdAndUpdate(user_id,user)
-    const person=await User.findOneAndUpdate({emailId:user_id},user,{returnDocument:'after'})//here the third parameter is options
+    const person=await User.findOneAndUpdate({emailId:user_id},user,{returnDocument:'after',runValidators: true})//here the third parameter is options
     //there are various types of options choosing different options will result in different person
     //output we can read about different options from the documenation 
     console.log(person)
