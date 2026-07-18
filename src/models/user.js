@@ -1,13 +1,4 @@
 const mongoose = require('mongoose');
-// import mongoose from "mongoose"; this is also correct
-
-//this method is also correct 
-// const { Schema } = mongoose; //it means we are creating a database schema here
-
-// const User = new Schema{ //it means the name of the schema will be user and below are the required field's for it
-
-
-// };
 
 const userSchema = new mongoose.Schema({
     firstName:{
