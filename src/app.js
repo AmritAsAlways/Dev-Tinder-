@@ -11,6 +11,8 @@ const { userAuth } = require("./middleware/auth");
 
 app.use(express.json()); // this is a middleware given by the express to convert any json data to 
 //javascript object and we can use it then 
+//the json data which comes from the enduser is converting into javascript object to save the object in database 
+//and it converts all json requets from enduser to javascript objects
 //now this middleware will work for all the routes
 
 
@@ -64,6 +66,39 @@ app.get("/feed",async (req,res)=>{
     res.status(400).send("some error occured ");
   }
 })
+
+//how to delete data from the database
+app.delete("/user", async (req,res)=>{
+  const userId=req.body.userId;
+
+  try{
+    const ispresent=await User.findByIdAndDelete(userId); //learn about the method's from the 
+    //mongoose documentation 
+    if(!ispresent) res.send("user was not present in database");
+    res.send("user deleted succesfully");
+  }
+  catch(err){
+    res.status(400).send("something went wrong");
+  }
+});
+
+//how to update a user data
+app.patch("/user",async (req,res)=>{
+  const userId=req.body.userId;
+  const userobject=req.body;
+
+  try{
+    await User.findByIdAndUpdate(userId,userobject); // read about this method from mongoose models
+    //read and try the options parameter in this method and see what happens
+    //in this userobjects if we put some unnessary fields which are not prenset in the user model 
+    //schema then this method donot update that fields only those fields are changed which are present in the 
+    //model schema
+    res.send("User updated successfully"); 
+  }
+  catch(err){
+    res.status(400).send("something went wrong");
+  }
+});
 
 
 
