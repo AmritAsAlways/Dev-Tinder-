@@ -88,11 +88,19 @@ app.patch("/user",async (req,res)=>{
   const userobject=req.body;
 
   try{
-    await User.findByIdAndUpdate(userId,userobject); // read about this method from mongoose models
-    //read and try the options parameter in this method and see what happens
-    //in this userobjects if we put some unnessary fields which are not prenset in the user model 
-    //schema then this method donot update that fields only those fields are changed which are present in the 
-    //model schema
+    // await User.findByIdAndUpdate(userId,userobject); // read about this method from mongoose models
+    // //read and try the options parameter in this method and see what happens
+    // //in this userobjects if we put some unnessary fields which are not prenset in the user model 
+    // //schema then this method donot update that fields only those fields are changed which are present in the 
+    // //model schema
+
+
+    // others parameters that can be entered here is runValidators means if a user object is being 
+    //changed then the userobject will be again validated with User model provided  
+    // means validator function will run even when we update the userobject
+    // await User.findByIdAndUpdate(userId,userobject,runValidtors=true);  wrong way
+    await User.findByIdAndUpdate(userId,userobject,{runValidators: true})
+
     res.send("User updated successfully"); 
   }
   catch(err){
