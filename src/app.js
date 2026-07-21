@@ -15,22 +15,24 @@ app.use(express.json()); // this is a middleware given by the express to convert
 //and it converts all json requets from enduser to javascript objects
 //now this middleware will work for all the routes
 
-
-//what is the authentication and jwt token and a cookie.in an actual application we donot want any unautherized user to access 
-//any of the routes of our application without logining in or without signing up so to takel this problem 
-// token is created means when we login in into any application it generate's a jwt token which only made for that user only that is unique 
-// and what the application does is that it returns that jwt token inside a cookie and give it back to the user 
+//what is the authentication and jwt token and a cookie.in an actual application we donot want any unautherized user to access
+//any of the routes of our application without logining in or without signing up so to takel this problem
+// token is created means when we login in into any application it generate's a jwt token which only made for that user only that is unique
+// and what the application does is that it returns that jwt token inside a cookie and give it back to the user
 //now all the browser what they does is that they store that cookie given by the application and whenever the user requets to access any other routes
 //of the application then browser send's this cookie back to the application then application validate's this cookie send by user to check if it genuinely that user
 //and then the application let the user access that particular route
 
 //now when application send's the user it can also a timer inside the cookie that after sometime be it 1day, 1 month ,1 year or lifetime the cookie will expire after that time
-//and user will have to again log in into the application 
+//and user will have to again log in into the application
 
-//now we cannot directly access the cookie send by the user and stored in the browser to access that cookie we have first parce that cookie and then only we can access it 
+//now we cannot directly access the cookie send by the user and stored in the browser to access that cookie we have first parce that cookie and then only we can access it
 //to do this we use a cookieparser() library to parse every cookie send by the application so we will use it
 //like a middleware
 //now it will parse everycookie before using any routes
+
+//and to create a jwt token we use a library known as jsonwebtoken and it has various method
+//and there it has 2 methods one to create a token and other to validate the token
 app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
@@ -41,7 +43,7 @@ app.post("/signup", async (req, res) => {
   //is the express.json()
 
   const userobject = req.body;
-  //now what we are doing is that we making the /signup api more secure to make it more secure 
+  //now what we are doing is that we making the /signup api more secure to make it more secure
   //it means we donot trust the user's input given to us and one more problem is that in the database
   //the password is stored as normal password but we want to save the encrypted form of the password in the database
   //so do all this we first validate the data given by user
@@ -51,19 +53,19 @@ app.post("/signup", async (req, res) => {
     validatesignupdata(req); //we are giving the entire request to this is validate function
 
     //after the data is validated then we will encrypt the password to encrypt the password we use a builtin tool called bycrypt
-    //encrypting a password 
-    const {firstName,lastName,emailId,password}=req.body; //extracting all the required fields earlier
-    const passwordHash=await bcrypt.hash(password,10); //it returns a promise how this function works learn from documentation 
+    //encrypting a password
+    const { firstName, lastName, emailId, password } = req.body; //extracting all the required fields earlier
+    const passwordHash = await bcrypt.hash(password, 10); //it returns a promise how this function works learn from documentation
     console.log(passwordHash);
 
     //creating an instance of the model/user schema
     // const user = new User(userobject); this is not a proper way to create a instance of the userobject to make it properly extract all the fields earlier from the userobject
     //which we have already done
-    const user=new User({
+    const user = new User({
       firstName,
       lastName,
       emailId,
-      password:passwordHash,
+      password: passwordHash,
     });
 
     await user.save(); //method used to save data to database
@@ -73,41 +75,67 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-//create a jwt token and cookie and give it back to the user after you have checked the user is valid i.e user has logged in 
-app.post("/login",async (req,res)=>{
-  try{
+//create a jwt token and cookie and give it back to the user after you have checked the user is valid i.e user has logged in
+app.post("/login", async (req, res) => {
+  try {
     //receive the user info
-  const {emailId,password}=req.body; //we extracted all the essential information fron the externaluser
+    const { emailId, password } = req.body; //we extracted all the essential information fron the externaluser
 
-  //validate whether the emailId given is a genuine emailId
-  if(!validator.isEmail(emailId)) throw new Error("Enter a valid emailId");
+    //validate whether the emailId given is a genuine emailId
+    if (!validator.isEmail(emailId)) throw new Error("Enter a valid emailId");
 
-  //how to find that same data in database using userId 
-  const userobject=await User.findOne({emailId:emailId});
-  if(!userobject) throw new Error("user not in database signup first");
+    //how to find that same data in database using userId
+    const userobject = await User.findOne({ emailId: emailId });
+    if (!userobject) throw new Error("user not in database signup first");
 
-  //check if the emailId is correct
-  let passwordcompare=bcrypt.compare(password,userobject.password);
-  if(!passwordcompare) throw new Error("wrong password");
+    //check if the emailId is correct
+    let passwordcompare = await bcrypt.compare(password, userobject.password);
+    if (!passwordcompare) throw new Error("wrong password");
 
-  //creating a jwt token
+    //creating a jwt token
+    //using the jsonwebtoken to create token it takes 2 inputs one the message we want to encrypt and a securitykey given by us
+    //as we want to create a unique token for every user so just use the mongodb id here
+    const jwttokenhaibhai = await jwt.sign({ _id: userobject._id },"secretmessaagehaibhaiye"); //this is asyncro.. method
 
-  //create a cookie and put the token inside the cookie -> to create a cookie we use a inbuilt method given to us by the express
-  //i.e res.cookie(Name,value) it generates a cookie  with the name of Name and it contains a token called value here
-  res.cookie("tokenwallacookie","fajsdflaafafa");// this is a random token generated by me
-  //and this cookie we will get to see in the browser or postman just where you give the response we can see there is a cookie button 
-  //from there we can access the cookie 
-  res.send("login successful");
-  }
-  catch(err){
-    res.status(400).send("something went wrong "+err.message);
+    console.log(jwttokenhaibhai);
+    console.log(userobject._id);
+    //create a cookie and put the token inside the cookie -> to create a cookie we use a inbuilt method given to us by the express
+    //i.e res.cookie(Name,value) it generates a cookie  with the name of Name and it contains a token called value here
+    res.cookie("tokenwallacookie", jwttokenhaibhai); // this is a random token generated by me
+    //and this cookie we will get to see in the browser or postman just where you give the response we can see there is a cookie button
+    //from there we can access the cookie
+    res.send("login successful");
+  } catch (err) {
+    res.status(400).send("something went wrong " + err.message);
   }
 });
 
 //now we will create a api for /profile to check the logic of cookie and token
-app.get("/profile",(req,res)=>{
-  console.log(req.cookies); //there is nothing called cookie it is called cookies
-  res.send("checking the jwt token and cookie logic");
+app.get("/profile",async (req, res) => {
+  try{
+    console.log(req.cookies); //there is nothing called cookie it is called cookies
+
+  //first we will extract the token out of the cookie
+
+  // const { tokenhaibhai } = req.cookies; wrong because the name with which you saved is not the name which you are trying to extract it from
+  // if(!tokenhaibhai) throw new Error("Token is not valid!!!");
+  const {tokenwallacookie} = req.cookies;
+  if(!tokenwallacookie) throw new Error("token is not valid");
+
+
+  //the we will validate whether the token given to us is the correct token for not for that user
+  //to do this we will use a different method given to us by jwttoken  it takes 2 parameters one is the token itself and other is the secret code that we
+  //gave to the jwtmethod when we were making the token  and it returns us the message which we have encrypted i.e in this case _id
+  // const user=jwt.verify(tokenhaibhai, "secretmessaagehaibhaiye"); wrong as tokenhaibhai name dont exist
+  const user=jwt.verify(tokenwallacookie, "secretmessaagehaibhaiye");
+  console.log(user);
+  const {_id} =user;//extracting id from the user 
+  const userobject=await User.findById(_id);
+  if(!userobject) throw new Error("user not present ");
+  res.send("checking the jwt token and cookie logic" + userobject);
+  }catch(err){
+    res.status(400).send("Error "+ err.message);
+  }
 });
 
 //how to get a user by email
@@ -202,7 +230,7 @@ app.patch("/user/:userId", async (req, res) => {
 
     res.send("User updated successfully");
   } catch (err) {
-    res.status(400).send("something went wrong"+err.message);
+    res.status(400).send("something went wrong" + err.message);
   }
 });
 
