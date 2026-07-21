@@ -23,14 +23,57 @@ app.post("/signup", async (req, res) => {
   //is the express.json()
 
   const userobject = req.body;
-  //creating an instance of the model/user schema
-  const user = new User(userobject);
+  //now what we are doing is that we making the /signup api more secure to make it more secure 
+  //it means we donot trust the user's input given to us and one more problem is that in the database
+  //the password is stored as normal password but we want to save the encrypted form of the password in the database
+  //so do all this we first validate the data given by user
 
+  //write all this logic inside the try catch block
   try {
+    validatesignupdata(req); //we are giving the entire request to this is validate function
+
+    //after the data is validated then we will encrypt the password to encrypt the password we use a builtin tool called bycrypt
+    //encrypting a password 
+    const {firstName,lastName,emailId,password}=req.body; //extracting all the required fields earlier
+    const passwordHash=await bcrypt.hash(password,10); //it returns a promise how this function works learn from documentation 
+    console.log(passwordHash);
+
+    //creating an instance of the model/user schema
+    // const user = new User(userobject); this is not a proper way to create a instance of the userobject to make it properly extract all the fields earlier from the userobject
+    //which we have already done
+    const user=new User({
+      firstName,
+      lastName,
+      emailId,
+      password:passwordHash,
+    });
+
     await user.save(); //method used to save data to database
     res.send("Data added to Database successfully");
   } catch (err) {
     res.status(400).send("some error occured " + err.message);
+  }
+});
+
+app.post("/login",async (req,res)=>{
+  try{
+    //receive the user info
+  const {emailId,password}=req.body; //we extracted all the essential information fron the externaluser
+
+  //validate whether the emailId given is a genuine emailId
+  if(!validator.isEmail(emailId)) throw new Error("Enter a valid emailId");
+
+  //how to find that same data in database using userId 
+  const userobject=await User.findOne({emailId:emailId});
+  if(!userobject) throw new Error("user not in database signup first");
+
+  //check if the emailId is correct
+  let passwordcompare=bcrypt.compare(password,userobject.password);
+  if(!passwordcompare) throw new Error("wrong password");
+  res.send("login successful");
+  }
+  catch(err){
+    res.status(400).send("something went wrong "+err.message);
   }
 });
 
