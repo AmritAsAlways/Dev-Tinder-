@@ -1,4 +1,9 @@
 const mongoose = require('mongoose');
+const validator=require('validator');
+//to check whether the password given by user is strong or not or the email,photourl given by user is
+//valid or not to check all this we use a npm library named validtor 
+
+//to know how to use validator just go to validator documentation 
 
 //to control what is getting inside the usershema and to make the fields necessary to fill and unique
 //mongoose provides us various schema types we have to use them like required , unique we can learn about 
@@ -23,10 +28,17 @@ const userSchema = new mongoose.Schema({ // but all these validation will only w
         unique: true,
         lowercase: true,
         trim: true,
+        //write the logic to validate inside the validate function give by mongoose
+        validate(value){
+            if(!validator.isEmail(value)) throw new Error("Enter a valid email "+value);
+        },
     },
     password:{
         type: String,
         required: true,
+        validate(value){
+            if(!validator.isStrongPassword(value)) throw new Error("Enter a strong password "+value); 
+        },
     },
     age:{
         type: Number,
@@ -41,6 +53,9 @@ const userSchema = new mongoose.Schema({ // but all these validation will only w
     photoURL:{
         type: String,
         default: "https://i.pinimg.com/originals/15/0f/a8/150fa8800b0a0d5633abc1d1c4db3d87.jpg?nii=t",
+        validate(value){
+            if(!validator.isURL(value)) throw new Error("Enter a valid URL "+value); 
+        },
     },
     about:{
         type: String,

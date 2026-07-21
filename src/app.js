@@ -9,107 +9,126 @@ const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken"); //we use this create tokens
 const { userAuth } = require("./middleware/auth");
 
-app.use(express.json()); // this is a middleware given by the express to convert any json data to 
-//javascript object and we can use it then 
-//the json data which comes from the enduser is converting into javascript object to save the object in database 
+app.use(express.json()); // this is a middleware given by the express to convert any json data to
+//javascript object and we can use it then
+//the json data which comes from the enduser is converting into javascript object to save the object in database
 //and it converts all json requets from enduser to javascript objects
 //now this middleware will work for all the routes
 
-
 app.post("/signup", async (req, res) => {
-  //now as we are sending the data from the postman so to get the data as the data 
-  //comes in the req  part then to get data we will use req.body as body will contain 
-  //the json data but to get the json data we will have to use a middleware which converts 
-  // the json data to javascipt object and we can use it and the middleware used here 
+  //now as we are sending the data from the postman so to get the data as the data
+  //comes in the req  part then to get data we will use req.body as body will contain
+  //the json data but to get the json data we will have to use a middleware which converts
+  // the json data to javascipt object and we can use it and the middleware used here
   //is the express.json()
 
   const userobject = req.body;
-  //creating an instance of the model/user schema 
+  //creating an instance of the model/user schema
   const user = new User(userobject);
 
-  try{
+  try {
     await user.save(); //method used to save data to database
     res.send("Data added to Database successfully");
-  }
-  catch(err){
-    res.status(400).send("some error occured "+ err.message);
+  } catch (err) {
+    res.status(400).send("some error occured " + err.message);
   }
 });
 
 //how to get a user by email
-app.get("/user",async (req,res)=>{
-  const userEmail=req.body.emailId; // get the emailId from the request that the end user is giving us
-  
-  try{
-    const user=await User.find({emailId : userEmail}); //how to find a user from the database using some parameters
+app.get("/user", async (req, res) => {
+  const userEmail = req.body.emailId; // get the emailId from the request that the end user is giving us
+
+  try {
+    const user = await User.find({ emailId: userEmail }); //how to find a user from the database using some parameters
     //get to this we will use the mongoose documentation model part the go this function and read about it
-    // here we first use the name of the model from which we want the data to come this will return all the user objects which 
+    // here we first use the name of the model from which we want the data to come this will return all the user objects which
     // matches the criteria and if we use .findOne() we will get only one object
 
     //but if the length of the user object is [] or 0 means there is no user present with this emailId
-    if(user.length===0) res.send("No such User is present ");
+    if (user.length === 0) res.send("No such User is present ");
     res.send(user);
-  }
-  catch(err){
+  } catch (err) {
     res.status(400).send("User not found ");
   }
-})
-
+});
 
 //how to get all the data from the database
-app.get("/feed",async (req,res)=>{
-  try{
-    const alldata=await User.find({});
+app.get("/feed", async (req, res) => {
+  try {
+    const alldata = await User.find({});
     res.send(alldata);
-  }
-  catch(err){
+  } catch (err) {
     res.status(400).send("some error occured ");
   }
-})
+});
 
 //how to delete data from the database
-app.delete("/user", async (req,res)=>{
-  const userId=req.body.userId;
+app.delete("/user", async (req, res) => {
+  const userId = req.body.userId;
 
-  try{
-    const ispresent=await User.findByIdAndDelete(userId); //learn about the method's from the 
-    //mongoose documentation 
-    if(!ispresent) res.send("user was not present in database");
+  try {
+    const ispresent = await User.findByIdAndDelete(userId); //learn about the method's from the
+    //mongoose documentation
+    if (!ispresent) res.send("user was not present in database");
     res.send("user deleted succesfully");
-  }
-  catch(err){
+  } catch (err) {
     res.status(400).send("something went wrong");
   }
 });
 
 //how to update a user data
-app.patch("/user",async (req,res)=>{
-  const userId=req.body.userId;
-  const userobject=req.body;
+app.patch("/user/:userId", async (req, res) => {
+  // const userId = req.body.userId;
+  const userId = req.params?.userId;
+  const userobject = req.body;
 
-  try{
+  //now one of the problem here is that here the end user through postman or some can give a lot of
+  //unwanted field's in the data model like "xyx": "abc" but these field are not present in the user shema
+  //and also in patch api here the end user can also update it's email which we don't want to have
+  //so what we will do it that whenever we get the userobject means all the things the user wants us to update
+  //we will only update a selective things here
+
+  //we should write all the logic inside try catch block
+
+  try {
     // await User.findByIdAndUpdate(userId,userobject); // read about this method from mongoose models
     // //read and try the options parameter in this method and see what happens
-    // //in this userobjects if we put some unnessary fields which are not prenset in the user model 
-    // //schema then this method donot update that fields only those fields are changed which are present in the 
+    // //in this userobjects if we put some unnessary fields which are not prenset in the user model
+    // //schema then this method donot update that fields only those fields are changed which are present in the
     // //model schema
 
-
-    // others parameters that can be entered here is runValidators means if a user object is being 
-    //changed then the userobject will be again validated with User model provided  
+    // others parameters that can be entered here is runValidators means if a user object is being
+    //changed then the userobject will be again validated with User model provided
     // means validator function will run even when we update the userobject
     // await User.findByIdAndUpdate(userId,userobject,runValidtors=true);  wrong way
-    await User.findByIdAndUpdate(userId,userobject,{runValidators: true})
 
-    res.send("User updated successfully"); 
-  }
-  catch(err){
-    res.status(400).send("something went wrong");
+    // const ALLOWED_UPDATES = ["userId", "photoURL", "about", "skills", "age"]; //here we are using userId as a field here so it means
+    //this can also be updated but we dont want that so
+    const ALLOWED_UPDATES = ["photoURL", "about", "skills", "age"]; //so we made this
+    //and we will get the userId from the route it self
+    //we will change the route from /user to /user/:userId and will also change the userId variable
+
+    const isUpdatesAllowed = Object.keys(userobject).every((k) =>
+      ALLOWED_UPDATES.includes(k),
+    );
+
+    if (!isUpdatesAllowed) {
+      throw new Error("updates not allowed ");
+    }
+
+    //check for if the skills length is <=10
+    // Check skills only if skills is present in the request
+    if (userobject.skills?.length > 10) {
+      throw new Error("Skills cannot be more than 10");
+    }
+
+    await User.findByIdAndUpdate(userId, userobject, { runValidators: true });
+
+    res.send("User updated successfully");
+  } catch (err) {
+    res.status(400).send("something went wrong"+err.message);
   }
 });
-
-
-
 
 connectDB()
   .then(() => {
@@ -119,5 +138,5 @@ connectDB()
     });
   })
   .catch((err) => {
-    console.error("Database cannot be connected");
+    console.error("Database cannot be connected" + err.message);
   });
