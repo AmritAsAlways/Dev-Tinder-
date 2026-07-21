@@ -35,6 +35,9 @@ app.use(express.json()); // this is a middleware given by the express to convert
 //and there it has 2 methods one to create a token and other to validate the token
 app.use(cookieParser());
 
+//now we have to do authentication for every route other than the /login and the /signup route so 
+//to do this we will make a  route in another file and pass this route as a middleware in all those route we want to add authentication
+
 app.post("/signup", async (req, res) => {
   //now as we are sending the data from the postman so to get the data as the data
   //comes in the req  part then to get data we will use req.body as body will contain
@@ -111,28 +114,10 @@ app.post("/login", async (req, res) => {
 });
 
 //now we will create a api for /profile to check the logic of cookie and token
-app.get("/profile",async (req, res) => {
+app.get("/profile",userAuth,async (req, res) => {
   try{
-    console.log(req.cookies); //there is nothing called cookie it is called cookies
-
-  //first we will extract the token out of the cookie
-
-  // const { tokenhaibhai } = req.cookies; wrong because the name with which you saved is not the name which you are trying to extract it from
-  // if(!tokenhaibhai) throw new Error("Token is not valid!!!");
-  const {tokenwallacookie} = req.cookies;
-  if(!tokenwallacookie) throw new Error("token is not valid");
-
-
-  //the we will validate whether the token given to us is the correct token for not for that user
-  //to do this we will use a different method given to us by jwttoken  it takes 2 parameters one is the token itself and other is the secret code that we
-  //gave to the jwtmethod when we were making the token  and it returns us the message which we have encrypted i.e in this case _id
-  // const user=jwt.verify(tokenhaibhai, "secretmessaagehaibhaiye"); wrong as tokenhaibhai name dont exist
-  const user=jwt.verify(tokenwallacookie, "secretmessaagehaibhaiye");
-  console.log(user);
-  const {_id} =user;//extracting id from the user 
-  const userobject=await User.findById(_id);
-  if(!userobject) throw new Error("user not present ");
-  res.send("checking the jwt token and cookie logic" + userobject);
+    const user=req.user;
+    res.send(user);
   }catch(err){
     res.status(400).send("Error "+ err.message);
   }
