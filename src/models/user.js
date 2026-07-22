@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const validator=require('validator');
+const jwt=require('jsonwebtoken');
+const bcrypt=require('bcrypt');
+
 //to check whether the password given by user is strong or not or the email,photourl given by user is
 //valid or not to check all this we use a npm library named validtor 
 
@@ -68,6 +71,30 @@ const userSchema = new mongoose.Schema({ // but all these validation will only w
     timestamps:true, //if we want the time that at what time the user is registered so to get this
     //mongoose gives us a feature of timestamps 
 });
+//write all these userschema methods before creating the model of the userschema
+
+//now there is something known as mongoose schema methods so what i can do is that i can attach a method on to this schema so that 
+//that method is applicable for all the users made using User model Schema 
+//these are helper method's which are closely related to the users
+
+
+//so what it means is that we can create the jwt token and give it to different users directly from the user model schema 
+//from right here and using mongoose methods like this and all users will have different unique tokens for them so
+userSchema.methods.getJWT = async function(){ //this mongoose method create's jwt token 
+    const user=this; // here this refers to the instance of the user model schema just created 
+    //and as we are using this keyword so we cannot use arrow functions here
+
+    const jwttokenhaibhai = await jwt.sign({ _id: user._id },"secretmessaagehaibhaiye");
+    return jwttokenhaibhai;
+}
+
+//we can also export the logic of comparing passwords given right here 
+userSchema.methods.validatePassword = async function(passwordenteredbyuser){
+    const userobject=this;
+    console.log(userobject.password+" "+passwordenteredbyuser);
+    const isPasswordvalid= await bcrypt.compare(passwordenteredbyuser, userobject.password);
+    return isPasswordvalid;
+}
 
 const User = mongoose.model("User",userSchema); // this is a user model it contain the schema that what information the user 
 //should have 
