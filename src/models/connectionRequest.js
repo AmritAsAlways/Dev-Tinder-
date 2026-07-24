@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 const connectionRequestSchema= new mongoose.Schema({
     fromUserId:{
         type: mongoose.Schema.Types.ObjectId,
+        //as we want to make a relation between the both schema's so here we want that there should be a relation between the fromuserid field and the userschema model
+        //and to make this we are using reference keyword and type the name of the schema you want to have a relation between 
+        ref: "User", //reference to the user collection 
         required:true,
     },
     toUserId:{

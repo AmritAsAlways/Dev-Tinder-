@@ -67,4 +67,48 @@ requestRouter.post("/request/send/:status/:userId", userAuth ,async (req,res)=>{
   }
 });
 
+requestRouter.post("/request/review/:status/:userId", userAuth , async (req,res)=>{
+  try{
+    //first get the user which is currently logged in with the help of the userAuth
+    const loggedInUser=req.user;
+    const status=req.params.status,requestId=req.params.userId;
+    //now we will first validate the input given by the user
+
+    //check if the status of the api is "accepted" or "rejected"
+    if(!["accepted","rejected"].includes(status)){
+      return res.status(400).json({message: "Invalid status provided "});
+    }
+
+    const connectionRequest=await connectionRequestModel.findOne({
+      _id: requestId,     //check if the userId is a genuine id of the user and also if userId is the Id of the person who is loggedin currently
+      toUserId: loggedInUser._id,
+      //and we only need those connectionrequestmodels's whose touserId is the userId of the loggedInUser and 
+    //and status is interested and 
+      status : "interested", 
+    })
+    //now why we wrote this it is because there can be multiple such connectionrequest's in the database where the touserid is the id of the loggedinuser and the status is interested
+    //but lets say i want to only get the 2nd connectionrequest with which the  above 2 criteria are  matching 
+    //then how can i get that exact connectionrequest so to get that we are putting the _id of that connectionrequest into the req argum. and 
+    //we are extracting it as requestId so 
+    //this code really means is that a connectionrequest with _id as requestId and touserId as loggedinuser'id and status as interested which will be only 1 connection request 
+    //which satisfy's all condition so to extract that we are using the .findOne() method here 
+
+    //if no such connectionrequest exits
+    if(!connectionRequest){
+      return res.status(404).json({message: " Connection request not found "});
+    }
+
+    //now if all the condition matched then change the status of the connectionrequest status to either accepted or rejected
+    connectionRequest.status=status;
+
+    const data = await connectionRequest.save();
+    res.json({message: "Connection Data " + status,
+      data,
+    });
+  }
+  catch(err){
+    res.status(400).send("Something went wrong "+err.message);
+  }
+});
+
 module.exports=requestRouter;

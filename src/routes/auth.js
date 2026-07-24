@@ -1,5 +1,5 @@
 const express=require("express");
-const userRouter=express.Router();
+const authRouter=express.Router();
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 const { validatesignupdata } = require("../utils/validators");
@@ -8,7 +8,7 @@ const User = require("../models/user");
 const { userAuth } = require("../middleware/auth"); 
 //change the path and import all the necessary methods and library needed to run all those routes 
 
-userRouter.post("/signup", async (req, res) => {
+authRouter.post("/signup", async (req, res) => {
   //now as we are sending the data from the postman so to get the data as the data
   //comes in the req  part then to get data we will use req.body as body will contain
   //the json data but to get the json data we will have to use a middleware which converts
@@ -49,7 +49,7 @@ userRouter.post("/signup", async (req, res) => {
 });
 
 //create a jwt token and cookie and give it back to the user after you have checked the user is valid i.e user has logged in
-userRouter.post("/login", async (req, res) => {
+authRouter.post("/login", async (req, res) => {
   try {
     //receive the user info
     const { emailId, password } = req.body; //we extracted all the essential information fron the externaluser
@@ -100,11 +100,11 @@ userRouter.post("/login", async (req, res) => {
 // the person sending us a logout request is a genuine user in the database
 //if he is in database then make a cookie with token of null and put the expiry date as just now means i will always expire
 //so user will always have to login before access any other routes
-userRouter.post("/logout",userAuth, (req,res)=>{
+authRouter.post("/logout",userAuth, (req,res)=>{
     res.cookie("tokenwallacookie",null,{expires: new Date(Date.now())});
     res.send("Logout successfully!!");
 });
 
 
 
-module.exports=userRouter;
+module.exports=authRouter;
