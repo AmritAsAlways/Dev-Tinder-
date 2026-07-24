@@ -5,6 +5,8 @@ const validator = require("validator");
 const { validatesignupdata } = require("../utils/validators");
 const jwt = require("jsonwebtoken"); //we use this create tokens
 const User = require("../models/user");
+const { userAuth } = require("../middleware/auth"); 
+//change the path and import all the necessary methods and library needed to run all those routes 
 
 userRouter.post("/signup", async (req, res) => {
   //now as we are sending the data from the postman so to get the data as the data
@@ -93,5 +95,16 @@ userRouter.post("/login", async (req, res) => {
     res.status(400).send("something went wrong " + err.message);
   }
 });
+
+//creating a logout api we have/need to authenticate a user(and also checking is the user is already loged in or not) who is lending us a logout api request that 
+// the person sending us a logout request is a genuine user in the database
+//if he is in database then make a cookie with token of null and put the expiry date as just now means i will always expire
+//so user will always have to login before access any other routes
+userRouter.post("/logout",userAuth, (req,res)=>{
+    res.cookie("tokenwallacookie",null,{expires: new Date(Date.now())});
+    res.send("Logout successfully!!");
+});
+
+
 
 module.exports=userRouter;

@@ -5,6 +5,13 @@ const cookieParser = require("cookie-parser");
 //what is the use of express.Router() it is used to make a clean,scalable express application 
 //as there were many routes which were present before the express.router() we use express.router() to group
 //some routes into one forming one group router route 
+//it allows us to divide routes into seperate files
+//to use this we have to import express then make a express.Router() with some name and just use 
+//it like we use normal router(app) just in the place of app replace it with that express.Router()
+//So, a router is basically a mini Express application that handles a group of related routes.
+
+//then how to import and use them in the main app.js file so to do this store the routes from the 
+//files and using .use("/",routename) like this now we can use that routes
 
 app.use(express.json());
 app.use(cookieParser());

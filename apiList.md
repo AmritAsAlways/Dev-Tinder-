@@ -8,7 +8,7 @@ authRouter
 profileRouter
 -GET  /profile/view
 -POST  /profile/edit
--POST  /profile/password
+-POST  /profile/password //forget password API 
 
 connectionRequestRouter
 -POST /request/send/interested/:userId
