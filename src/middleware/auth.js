@@ -7,7 +7,7 @@ const User=require('../models/user');
 const userAuth =async (req, res, next) => {
     try {
         const { tokenwallacookie } = req.cookies;
-        if (!tokenwallacookie) throw new Error("token is not valid");
+        if (!tokenwallacookie) return res.status(401).send("Please Login!");
         const user = jwt.verify(tokenwallacookie, "secretmessaagehaibhaiye");
         const { _id } = user;//extracting id from the user 
         const userobject = await User.findById(_id);

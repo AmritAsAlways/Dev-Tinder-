@@ -38,8 +38,8 @@ const validateEditProfileData = (req) => {
 
   //after checking the allowedfields check if the input fields are valid or not
   // if(firstName.length<3 || firstName.length>100 || lastName.length>100 || about.length>100) return false; all these are wrong
-  //because we are not sure that the firstName , lastName , about is present in the update or not 
-  //if not present then we cannot run the check's 
+  //because we are not sure that the firstName , lastName , about is present in the update or not
+  //if not present then we cannot run the check's
   // so here we are first checking that if that field exists or not if exits then only check for validation
   if (firstName && (firstName.length < 3 || firstName.length > 100)) {
     return false;
@@ -49,13 +49,15 @@ const validateEditProfileData = (req) => {
     return false;
   }
 
-  if (about && about.length > 100) {
+  if (about && about.length > 500) {
     return false;
   }
 
   if (emailId && !validator.isEmail(emailId)) return false;
   if (photoURL && !validator.isURL(photoURL)) return false;
-  if (skills.length > 100) return false;
+  if (skills && skills.length > 10) {
+    return false;
+  }
   if (gender && !["male", "female", "others"].includes(gender.toLowerCase()))
     return false;
 

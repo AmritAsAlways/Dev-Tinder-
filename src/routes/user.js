@@ -88,7 +88,7 @@ userRouter.get("/user/connections", userAuth , async (req,res)=>{
 
 //initially our feed api was /feed but lets say we set that limit of the feed api as 10 so the new api will be 
 ///user/feed/?page=1&limit=10
-userRouter.get("/user/feed", userAuth, async (req,res)=>{
+userRouter.get("/feed", userAuth, async (req,res)=>{
     //.params means when we pass in the information in the api like this /feed/:skip/:limit
     //but to access the information if the api is like this /feed?page=1&limit=10 we use query not params
 
