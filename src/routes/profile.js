@@ -5,6 +5,8 @@ const { validateEditProfileData } = require("../utils/validators");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 //change the path and import all the necessary methods and library needed to run all those routes
+const upload = require("../middleware/upload");
+const cloudinary = require("../config/cloudinary");
 
 //now we will create a api for /profile to check the logic of cookie and token
 profileRouter.get("/profile/view", userAuth, async (req, res) => {
@@ -82,5 +84,38 @@ profileRouter.patch("/profile/password", userAuth, async (req, res) => {
     res.status(400).send("something went wrong " + err.message);
   }
 });
+
+profileRouter.post(
+  "/profile/upload-photo",
+  userAuth,
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      if (!req.file) throw new Error("No file uploaded");
+
+      const uploadFromBuffer = () =>
+        new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "devtinder/profile-photos" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            },
+          );
+          stream.end(req.file.buffer);
+        });
+
+      const result = await uploadFromBuffer();
+
+      // just return the URL — don't touch the DB here
+      res.json({
+        message: "Photo uploaded successfully",
+        photoURL: result.secure_url,
+      });
+    } catch (err) {
+      res.status(400).send("Something went wrong " + err.message);
+    }
+  },
+);
 
 module.exports = profileRouter;
