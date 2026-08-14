@@ -92,6 +92,7 @@ profileRouter.post(
   async (req, res) => {
     try {
       if (!req.file) throw new Error("No file uploaded");
+      console.log("received file:", req.file.originalname, req.file.mimetype, req.file.size);
 
       const uploadFromBuffer = () =>
         new Promise((resolve, reject) => {
