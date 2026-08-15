@@ -1,20 +1,27 @@
 const validator = require("validator");
 
-const validatesignupdata = (req) => {
-  const { emailId, firstName, lastName, password } = req.body; //extracting all the field required in the
-  //signup of the user from the request
+  const validatesignupdata = (req) => {
+    const { emailId, firstName, lastName, password } = req.body; //extracting all the field required in the
+    //signup of the user from the request
 
-  if (!firstName || !lastName) {
-    // this validation is not required as these are already checked in the user shema level validations but aise hi kardiya
-    throw new Error("Name is not valid");
-  } else if (!validator.isEmail(emailId)) {
-    // this validation is not required as these are already checked in the user shema level validations but aise hi kardiya
-    throw new Error("Enter a valid Email");
-  } else if (!validator.isStrongPassword(password)) {
-    // this validation is not required as these are already checked in the user shema level validations but aise hi kardiya
-    throw new Error("Enter a strong password");
-  }
-};
+    const firstNametrimmed=firstName.trim();
+    const lastNametrimmed=lastName.trim();
+
+    if (!firstNametrimmed || !lastNametrimmed) {
+      // this validation is not required as these are already checked in the user shema level validations but aise hi kardiya
+      throw new Error("Name is not valid");
+    } 
+    if(firstNametrimmed.length<3 || firstNametrimmed.length>100) throw new Error("firstName should be between 3 to 100 characters");
+    if(lastNametrimmed.length>100) throw new Error("lastName should be less than or equal to 100 characters");
+    if (!validator.isEmail(emailId)) {
+      // this validation is not required as these are already checked in the user shema level validations but aise hi kardiya
+      throw new Error("Enter a valid Email");
+    } 
+    if (!validator.isStrongPassword(password)) {
+      // this validation is not required as these are already checked in the user shema level validations but aise hi kardiya
+      throw new Error("Enter a strong password");
+    }
+  };
 
 const validateEditProfileData = (req) => {
   //all the allowededitfields
@@ -41,11 +48,13 @@ const validateEditProfileData = (req) => {
   //because we are not sure that the firstName , lastName , about is present in the update or not
   //if not present then we cannot run the check's
   // so here we are first checking that if that field exists or not if exits then only check for validation
-  if (firstName && (firstName.length < 3 || firstName.length > 100)) {
+  const firstNametrimmed=firstName.trim();
+  const lastNametrimmed=lastName.trim();
+  if (firstNametrimmed.length < 3 || firstNametrimmed.length > 100) {
     return false;
   }
 
-  if (lastName && (lastName.length < 3 || lastName.length > 100)) {
+  if (lastNametrimmed.length < 3 || lastNametrimmed.length > 100) {
     return false;
   }
 
@@ -58,11 +67,16 @@ const validateEditProfileData = (req) => {
   if (skills && skills.length > 10) {
     return false;
   }
-  if (gender && !["male", "female", "others"].includes(gender.toLowerCase()))
-    return false;
+  const isSkillsValid = Array.isArray(skills) && skills.every(skill => {
+    const trimmed = skill.trim();
+    return trimmed.length > 0 && trimmed.length <= 10;
+  });
+  if(isSkillsValid === false) return false;
+    if (gender && !["male", "female", "others"].includes(gender.toLowerCase()))
+      return false;
 
-  return isEditAllowed;
-};
+    return isEditAllowed;
+  };
 
 module.exports = {
   validatesignupdata,

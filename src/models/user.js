@@ -45,10 +45,13 @@ const userSchema = new mongoose.Schema({ // but all these validation will only w
     },
     age:{
         type: Number,
+        required: true,
         min: 18,
+        max:100,
     },
     gender:{
         type: String,
+        required: true,
         validate(value){ //any logic and be written inside this validate function and read about it from mongoose docum.
             if(!["male","female","others"].includes(value.toLowerCase())) throw new Error("Gender data is not valid"); 
         },
