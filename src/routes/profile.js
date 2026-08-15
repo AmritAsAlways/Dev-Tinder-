@@ -85,11 +85,30 @@ profileRouter.patch("/profile/password", userAuth, async (req, res) => {
   }
 });
 
-profileRouter.post(
-  "/profile/upload-photo",
-  userAuth,
-  upload.single("photo"),
-  async (req, res) => {
+profileRouter.post("/profile/upload-photo", userAuth, (req, res) => {
+  // IMPORTANT: upload.single("photo") is called manually here instead of
+  // being passed directly as middleware (i.e. NOT
+  // `upload.single("photo"), async (req, res) => {...}`).
+  //
+  // Why: when Multer's fileFilter rejects a file (wrong type) or a file
+  // exceeds the size limit, it reports that failure by calling
+  // `cb(new Error(...))`. If upload.single() is registered as normal
+  // middleware, Express routes that error to its own DEFAULT error
+  // handler — which has nothing to do with our app's error format, and
+  // sends back a raw HTML stack-trace page instead of clean JSON/text.
+  // That's exactly what produced the broken "<!DOCTYPE html>..." response
+  // you were seeing in the frontend.
+  //
+  // Calling upload.single("photo")(req, res, callback) directly lets US
+  // receive that error in a plain callback, so we can respond with the
+  // same clean, short error message every other route in this file uses.
+  upload.single("photo")(req, res, async (multerErr) => {
+    if (multerErr) {
+      // covers both: fileFilter rejections (e.g. "Only image files are
+      // allowed") AND Multer's own limit errors (e.g. file over 5MB)
+      return res.status(400).send("Something went wrong " + multerErr.message);
+    }
+
     try {
       if (!req.file) throw new Error("No file uploaded");
       console.log("received file:", req.file.originalname, req.file.mimetype, req.file.size);
@@ -116,7 +135,7 @@ profileRouter.post(
     } catch (err) {
       res.status(400).send("Something went wrong " + err.message);
     }
-  },
-);
+  });
+});
 
 module.exports = profileRouter;
