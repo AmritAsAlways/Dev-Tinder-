@@ -23,6 +23,8 @@ const userSchema = new mongoose.Schema({ // but all these validation will only w
     },
     lastName:{
         type: String,
+        required: true,
+        minLength: 2,
         maxLength: 100,
     },
     emailId:{
@@ -51,7 +53,9 @@ const userSchema = new mongoose.Schema({ // but all these validation will only w
     },
     gender:{
         type: String,
-        required: true,
+        default: "others", //if no gender is selected, default to "others" instead of failing
+        //the required check (previously required:true with no default broke signup entirely,
+        //since the signup form doesn't collect a gender at all)
         validate(value){ //any logic and be written inside this validate function and read about it from mongoose docum.
             if(!["male","female","others"].includes(value.toLowerCase())) throw new Error("Gender data is not valid"); 
         },
@@ -66,6 +70,8 @@ const userSchema = new mongoose.Schema({ // but all these validation will only w
     about:{
         type: String,
         default: "This is the default description",
+        minLength: 0,
+        maxLength: 400,
     },
     skills:{
         type: [String],
@@ -87,14 +93,13 @@ userSchema.methods.getJWT = async function(){ //this mongoose method create's jw
     const user=this; // here this refers to the instance of the user model schema just created 
     //and as we are using this keyword so we cannot use arrow functions here
 
-    const jwttokenhaibhai = await jwt.sign({ _id: user._id },"secretmessaagehaibhaiye");
+    const jwttokenhaibhai = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET_MESSAGE);
     return jwttokenhaibhai;
 }
 
 //we can also export the logic of comparing passwords given right here 
 userSchema.methods.validatePassword = async function(passwordenteredbyuser){
     const userobject=this;
-    console.log(userobject.password+" "+passwordenteredbyuser);
     const isPasswordvalid= await bcrypt.compare(passwordenteredbyuser, userobject.password);
     return isPasswordvalid;
 }

@@ -1,9 +1,13 @@
 const mongoose = require("mongoose");
 
+// The connection string now comes from the MONGODB_URI environment variable
+// (set in your .env file locally, and in the hosting dashboard when deployed)
+// so the database password is never written inside the source code.
 const connectDB = async () => {
-  await mongoose.connect(
-    "mongodb://amritrajsingh300_db_user:newpassword@ac-8ezc3qe-shard-00-00.33hhxdk.mongodb.net:27017,ac-8ezc3qe-shard-00-01.33hhxdk.mongodb.net:27017,ac-8ezc3qe-shard-00-02.33hhxdk.mongodb.net:27017/devtinderbackend?ssl=true&replicaSet=atlas-ie893k-shard-0&authSource=admin&appName=DevTinder"
-  );
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI environment variable is not set");
+  }
+  await mongoose.connect(process.env.MONGODB_URI);
 };
 
 module.exports = connectDB;

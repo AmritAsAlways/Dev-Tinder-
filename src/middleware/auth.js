@@ -1,5 +1,6 @@
 const jwt=require('jsonwebtoken');
 const User=require('../models/user');
+const jwtsecretmessage=process.env.JWT_SECRET_MESSAGE;
 //we are here not using the cookie-parser because this middleware is going to be used in the app.js where 
 //before even this middleware runs the cookieparser middleware had already been exectuted so we donot have to parse it again 
 //because the req.cookie we are using is already has been parsed 
@@ -8,7 +9,7 @@ const userAuth =async (req, res, next) => {
     try {
         const { tokenwallacookie } = req.cookies;
         if (!tokenwallacookie) return res.status(401).send("Please Login!");
-        const user = jwt.verify(tokenwallacookie, "secretmessaagehaibhaiye");
+        const user = jwt.verify(tokenwallacookie, jwtsecretmessage);
         const { _id } = user;//extracting id from the user 
         const userobject = await User.findById(_id);
         if (!userobject) throw new Error("user not present ");

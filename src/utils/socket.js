@@ -6,7 +6,10 @@ const Chat = require("../models/chat");
 // and relaying "typing"/"stopTyping" events between the two chatting users.
 const initializeSocket = (server) => {
   const io = new Server(server, {
-    cors: { origin: "http://localhost:5173", credentials: true },
+    cors: {
+      origin: process.env.FRONTEND_URL || "http://localhost:5173",
+      credentials: true,
+    },
   });
 
   io.on("connection", (socket) => {

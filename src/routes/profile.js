@@ -8,6 +8,14 @@ const validator = require("validator");
 const upload = require("../middleware/upload");
 const cloudinary = require("../config/cloudinary");
 
+// the original stock avatar we used to point photoURL at directly. Now we
+// upload it to our own Cloudinary account instead of hotlinking it forever.
+const DEFAULT_PHOTO_SOURCE_URL =
+  "https://i.pinimg.com/originals/15/0f/a8/150fa8800b0a0d5633abc1d1c4db3d87.jpg?nii=t";
+// fixed public_id so every call reuses/overwrites the SAME Cloudinary asset
+// instead of creating a new upload each time someone clicks the button
+const DEFAULT_PHOTO_PUBLIC_ID = "devtinder/profile-photos/default-avatar";
+
 //now we will create a api for /profile to check the logic of cookie and token
 profileRouter.get("/profile/view", userAuth, async (req, res) => {
   try {
@@ -21,7 +29,7 @@ profileRouter.get("/profile/view", userAuth, async (req, res) => {
 profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
   try {
     //first we will do sanitize the data given to us by the user
-    if (!validateEditProfileData(req)) throw new Error("Invalid edit request ");
+    validateEditProfileData(req);
 
     //now to access the profile/edit user has to go to userAuth middleware here after
     //autherizing the user we have passed the userobject inside the req.user so now extract that user from
@@ -136,6 +144,39 @@ profileRouter.post("/profile/upload-photo", userAuth, (req, res) => {
       res.status(400).send("Something went wrong " + err.message);
     }
   });
+});
+
+profileRouter.get("/profile/default-photo", userAuth, async (req, res) => {
+  try {
+    // Look the asset up first — if it's already on Cloudinary from a
+    // previous call, reuse that URL instead of re-uploading.
+    let secureUrl;
+    try {
+      const existing = await cloudinary.api.resource(DEFAULT_PHOTO_PUBLIC_ID);
+      secureUrl = existing.secure_url;
+    } catch (lookupErr) {
+      // not found yet — upload the stock photo once, under the fixed
+      // public_id, so every future call finds it via the lookup above
+      const uploaded = await cloudinary.uploader.upload(DEFAULT_PHOTO_SOURCE_URL, {
+        public_id: DEFAULT_PHOTO_PUBLIC_ID,
+        folder: undefined, // public_id already includes the folder path
+        overwrite: false,
+      });
+      secureUrl = uploaded.secure_url;
+    }
+
+    res.json({
+      message: "Default photo ready",
+      photoURL: secureUrl,
+    });
+  } catch (err) {
+    // Cloudinary's SDK doesn't always reject with a real Error instance —
+    // sometimes it's a plain object shaped like { error: { message, http_code } }.
+    // Checking both shapes avoids printing "Something went wrong undefined".
+    const message =
+      err?.message || err?.error?.message || "Failed to load the default photo";
+    res.status(400).send("Something went wrong " + message);
+  }
 });
 
 module.exports = profileRouter;
