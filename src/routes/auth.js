@@ -37,7 +37,7 @@ authRouter.post("/signup", async (req, res) => {
 
     //after the data is validated then we will encrypt the password to encrypt the password we use a builtin tool called bycrypt
     //encrypting a password
-    const { firstName, lastName, emailId, password } = req.body; //extracting all the required fields earlier
+    const { firstName, lastName, emailId, password ,age } = req.body; //extracting all the required fields earlier
     const passwordHash = await bcrypt.hash(password, 10); //it returns a promise how this function works learn from documentation
 
     //creating an instance of the model/user schema
@@ -48,6 +48,7 @@ authRouter.post("/signup", async (req, res) => {
       lastName,
       emailId,
       password: passwordHash,
+      age: Number(age)
     });
 
     const savedUser=await user.save(); //method used to save data to database
