@@ -7,7 +7,9 @@ const connectDB = async () => {
   if (!process.env.MONGODB_URI) {
     throw new Error("MONGODB_URI environment variable is not set");
   }
-  await mongoose.connect(process.env.MONGODB_URI);
+  await mongoose.connect(mongoose.connect(process.env.MONGO_URI, {
+    dbName: "devtinderbackend"
+  }));
 };
 
 module.exports = connectDB;
